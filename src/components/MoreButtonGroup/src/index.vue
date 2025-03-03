@@ -12,6 +12,14 @@ export default defineComponent({
   name: 'VelMoreButtonGroup',
   inheritAttrs: false,
   props: {
+    trigger: {
+      type: String,
+      default: 'hover',
+    },
+    expandTrigger: {
+      type: String,
+      default: 'hover',
+    },
     size: {
       type: String as PropType<VelMoreButtonGroupProps['size']>,
       default: '',
@@ -39,7 +47,7 @@ export default defineComponent({
     return () => {
       const buttons = nodes.value.map((node) => {
         if (node.children && node.children.length > 0) {
-          return <Dropdown data={node} key={node.id} />
+          return <Dropdown trigger={props.trigger} expandTrigger={props.expandTrigger} data={node} key={node.id} />
         }
         return <MoreButton
           key={node.id}

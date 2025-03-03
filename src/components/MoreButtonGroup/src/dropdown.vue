@@ -17,6 +17,14 @@ export default defineComponent({
       type: Object as PropType<Item>,
       required: true,
     },
+    expandTrigger: {
+      type: String,
+      default: 'hover',
+    },
+    trigger: {
+      type: String,
+      default: 'hover',
+    },
   },
   setup(props) {
     const { groupProps } = useMoreButtonGroupInject()
@@ -25,9 +33,29 @@ export default defineComponent({
 
     const modelValue = ref(null)
 
+    let timer
+    const hide = () => {
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        togglePopperVisible(false)
+      }, 200)
+    }
+
+    const clearTimer = () => {
+      clearTimeout(timer)
+    }
+
     const togglePopperVisible = (isVisible: boolean) => {
+      clearTimeout(timer)
       modelValue.value = null
       cascader.value.togglePopperVisible(isVisible)
+      if (isVisible){
+        cascader.value.contentRef.addEventListener('mouseleave', hide)
+        cascader.value.contentRef.addEventListener('mouseenter', clearTimer)
+      } else {
+        cascader.value.contentRef.removeEventListener('mouseenter', clearTimer)
+        cascader.value.contentRef.removeEventListener('mouseleave', hide)
+      }
     }
 
     const cascaderSlots = {
@@ -73,13 +101,26 @@ export default defineComponent({
         onClick: void 0
       }
 
+      if (props.expandTrigger === 'hover'){
+        modelProps.props = {expandTrigger:'hover'}
+      }
+
+      if (props.trigger === 'hover'){
+        vueMoreButtonProps.onMouseenter = () => togglePopperVisible(true)
+        vueMoreButtonProps.onMouseleave = hide
+      } else {
+        vueMoreButtonProps.onClick = () => {
+          modelValue.value = null
+          cascader.value.togglePopperVisible(true)
+        }
+      }
+
       return <VueMoreButton class="more-dropdown-reference-button"
         key={props.data.id}
         size={groupProps.size}
         text={groupProps.text}
         link={groupProps.link}
         {...vueMoreButtonProps}
-        onClick={() => togglePopperVisible(true)}
       >
         {props.data.content?.()}
         <div class="more-button-group-dropdown">
